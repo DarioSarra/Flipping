@@ -29,7 +29,7 @@ function process_pokes(filepath::String)
                 continue
             end
         elseif curr_data[1,x] isa Real
-            curr_data[x] = Bool.(curr_data[x])
+            curr_data[!,x] = Bool.(curr_data[:,x])
         end
     end
     curr_data[!,:Side] = [a ? "L" : "R" for a in curr_data[!,:Side]]
@@ -55,11 +55,11 @@ function process_pokes(filepath::String)
     curr_data[!,:Day] .= parse(Int64,day)
     curr_data[!,:Daily_Session] .= daily_session
     curr_data[!,:Session] .= session
-    curr_data[!,:Gen] = Flipping.gen.(curr_data[:MouseID])
-    curr_data[!,:Drug] = Flipping.pharm.(curr_data[:Day])
-    curr_data[!,:Stim_Day] .= length(findall(curr_data[:Stim])) == 0 ? false : true
-    curr_data[!,:Streak] = count_sequence(curr_data[:Side])
-    curr_data[!,:ReverseStreak] = reverse(curr_data[:Streak])
+    curr_data[!,:Gen] = Flipping.gen.(curr_data[:,:MouseID])
+    curr_data[!,:Drug] = Flipping.pharm.(curr_data[:,:Day])
+    curr_data[!,:Stim_Day] .= length(findall(curr_data[:,:Stim])) == 0 ? false : true
+    curr_data[!,:Streak] = count_sequence(curr_data[:,:Side])
+    curr_data[!,:ReverseStreak] = reverse(curr_data[:,:Streak])
     curr_data[!,:Poke_within_Streak] .= 0
     curr_data[!,:Poke_Hierarchy] .= 0.0
     curr_data[!,:Poke_within_Streak] = Vector{Union{Float64,Missing}}(undef,size(curr_data,1))

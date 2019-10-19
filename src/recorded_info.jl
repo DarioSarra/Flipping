@@ -10,7 +10,7 @@ function gen(str; dir = joinpath(dirname(@__DIR__), "genotypes"))
         if endswith(file, ".csv")
             df = FileIO.load(joinpath(dir, file)) |> DataFrame
             n = names(df)[1]
-            if str in df[n]
+            if str in df[!,n]
                 genotype = string(n)
             end
         end
@@ -27,7 +27,7 @@ function pharm(str; dir = joinpath(dirname(@__DIR__), "pharmacology"))
         if endswith(file, ".csv")
             df = FileIO.load(joinpath(dir, file)) |> DataFrame
             n = names(df)[1]
-            if str in df[n]
+            if str in df[!,n]
                 drug = String(n)
             end
         end
