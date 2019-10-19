@@ -80,7 +80,7 @@ function by_summary(df::IndexedTables.IndexedTable,by,x::Symbol)
     # JuliaDB.groupby(NamedTuple{(x,)}(t-> getindex(t,1),),df,by,select = x)
     # JuliaDBMeta.@groupby df by {MouseID = cols(x)[1]}
     t = JuliaDB.groupby(t-> getindex(t,1),df,by,select = x)
-    renamecol(t,(colnames(t)[end]=>x))
+    JuliaDB.rename(t,(colnames(t)[end]=>x))
 end
 
 

@@ -104,7 +104,7 @@ function find_behavior(Directory_path::String, Exp_type::String,Exp_name::String
     bhv = get_data(rawdata_path, Mice_suffix);
     DataIndex = create_DataIndex(bhv);
     DataIndex[!,:Preprocessed_Path] = joinpath.(saving_path,DataIndex[:,:Session])
-    DataIndex[:Saving_Path] = joinpath(saving_path,"Bhv")
+    DataIndex[!,:Saving_Path] .= joinpath(saving_path,"Bhv")
     return DataIndex
 end
 
