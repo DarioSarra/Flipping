@@ -60,10 +60,10 @@ function create_DataIndex(bhv)
     bhv = bhv[mask]
     string_result = [res.match for res in string_search if res !== nothing]
     DataIndex = DataFrame(Bhv_Path = bhv)
-    DataIndex[:Session] = String.(string_result.*".csv")
-    DataIndex[:MouseID] = String.([split(t,"_")[1] for t in DataIndex[:Session]])
-    DataIndex[:Day] = String.(["20"*match.(r"\d{6}",t).match for t in DataIndex[:Session]])
-    DataIndex[:Period] = String.([match.(r"[a-z]{1}",t).match for t in DataIndex[:Session]])
+    DataIndex[!,:Session] = String.(string_result.*".csv")
+    DataIndex[!,:MouseID] = String.([split(t,"_")[1] for t in DataIndex[:,:Session]])
+    DataIndex[!,:Day] = String.(["20"*match.(r"\d{6}",t).match for t in DataIndex[:,:Session]])
+    DataIndex[!,:Period] = String.([match.(r"[a-z]{1}",t).match for t in DataIndex[:,:Session]])
     return DataIndex
 end
 
