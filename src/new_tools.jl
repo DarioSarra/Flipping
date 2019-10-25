@@ -207,7 +207,8 @@ function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
     pokes = join(pokes, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
     mask = occursin.(String.(names(pokes)),"_1")
     for x in[names(pokes)[mask]]
-        deletecols!(pokes, x)
+        DataFrames.select!(pokes,DataFrames.Not(x))
+        #deletecols!(pokes, x)
     end
     pokes = Flipping.check_fiberlocation(pokes,exp_dir)
     filetosave = joinpath(exp_dir,"pokes"*splitdir(exp_dir)[end]*".jld2")
@@ -218,12 +219,13 @@ function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
     streaks = join(streaks, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
     mask = occursin.(String.(names(streaks)),"_1")
     for x in[names(streaks)[mask]]
-        deletecols!(streaks, x)
+        DataFrames.select!(streaks,DataFrames.Not(x))
+        #deletecols!(streaks, x)
     end
     streaks = Flipping.check_fiberlocation(streaks,exp_dir)
     filetosave = joinpath(exp_dir,"streaks"*splitdir(exp_dir)[end]*".jld2")
     @save filetosave streaks
-    simple = delete!(streaks,:PokeSequence)
+    simple = DataFrames.select(streaks,DataFrames.Not(:PokeSequence))
     filetosave = joinpath(exp_dir,"streaks"*splitdir(exp_dir)[end]*".csv")
     CSVFiles.save(filetosave,simple)
     return pokes, streaks, DataIndex

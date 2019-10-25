@@ -81,7 +81,7 @@ function create_exp_calendar(df::AbstractDataFrame,days::Symbol)
         push!(Exp_day,Int64(n))
         push!(Day,d)
     end
-    x = DataFrame(Exp_Day = Exp_day, days = Day)
+    x = DataFrame(Exp_Day = Exp_day, Day = Day)
     #x[!,days] = Day
     return x
 end
@@ -96,5 +96,5 @@ function create_exp_calendar(df::AbstractDataFrame,days::Symbol,manipulation::Sy
     x = x[reordered,:]
     x[!,new_name] = count_series(x[:,:manipulation_state])
     #deletecols!(x,:manipulation_state)
-    return select!(x,Not(:manipulation_state))
+    return select!(x,DataFrames.Not(:manipulation_state))
 end

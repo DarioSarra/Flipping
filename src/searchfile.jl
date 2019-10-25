@@ -93,7 +93,7 @@ end
 
 function find_behavior(Directory_path::String, Exp_type::String,Exp_name::String, Mice_suffix ::String; run_task = "run_task_photo")
     rawdata_path = joinpath(Directory_path,run_task,"raw_data")
-    saving_path = joinpath(Directory_path,"Datasets",Exp_type,Exp_name,"Bhv")
+    saving_path = joinpath(Directory_path,"Datasets",Exp_type,Exp_name)
     exp_dir = joinpath(Directory_path,"Datasets",Exp_type,Exp_name)
     if !ispath(saving_path)
         if !ispath(exp_dir)
@@ -103,8 +103,8 @@ function find_behavior(Directory_path::String, Exp_type::String,Exp_name::String
     end
     bhv = get_data(rawdata_path, Mice_suffix);
     DataIndex = create_DataIndex(bhv);
-    DataIndex[!,:Preprocessed_Path] = joinpath.(saving_path,DataIndex[:,:Session])
-    DataIndex[!,:Saving_Path] .= joinpath(saving_path,"Bhv")
+    DataIndex[!,:Preprocessed_Path] = joinpath.(saving_path,"Bhv",DataIndex[:,:Session])
+    DataIndex[!,:Saving_Path] .= saving_path
     return DataIndex
 end
 
