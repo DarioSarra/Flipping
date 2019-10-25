@@ -46,7 +46,7 @@ function process_pokes(filepath::String)
             curr_data[!,:StimFreq] = repeat([50],size(curr_data,1))
         end
         curr_data[!,:StimFreq] = [a == 50 ? 25 : a  for a in curr_data[:Stim]]
-        curr_data[!,:Box] = 0
+        curr_data[!,:Box] .= 0
     elseif iscolumn(curr_data,:Prwd)
         curr_data[!,:Protocol] = string.(curr_data[!,:Prwd],'/',curr_data[!,:Ptrs])
     end
@@ -195,7 +195,7 @@ end
 """
 
 function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
-    exp_dir = DataIndex[1,:Saving_path]
+    exp_dir = DataIndex[1,:Saving_Path]
     pokes, streaks = process_sessions(DataIndex)
     exp_calendar = by(pokes,:MouseID) do dd
         Flipping.create_exp_calendar(dd,:Day)

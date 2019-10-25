@@ -83,5 +83,33 @@ plt = plot(fit_protocol(10,0.6,0.3),
     xlabel = "Consecutive failures",
     ylabel =  "Probability of current side high",
     label="60/30")
-plot!(plt, fit_protocol(10,0.4,0.2),label="40/20")
+plot!(plt, fit_protocol(10,0.3,0.15),label="40/20")
 Plots.abline!(plt,0,0.05,label = "hypothetical threshold to leave")
+##
+plt = plot(fit_protocol(10,0.3,0.15),
+    xticks = 1:10,
+    title  = "Evidence accumulation",
+    xlabel = "Evidence",
+    ylabel =  "Latent state accumulation P(correct)",
+    color = :black,
+    legend = false,
+    linewidth = 3,
+    tickfont = font(:Bookman,12),
+    background_color = RGBA(1,1,1,0)
+    )
+##
+savefig(plt,"/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/example.png")
+##
+Plots.abline!(plt,0,0.15,linewidth = 3,
+    color = :black,
+    annotations=(5, 0.18, text("Latent threshold", :left)))
+savefig(plt,"/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/example2.png")
+##
+Plots.abline!(plt,0,0.05,linewidth = 3,
+    color = :blue)
+savefig(plt,"/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/example3.png")
+##
+plot!(fit_protocol(10,0.2,0.1),
+    linewidth = 3,
+    color = :blue)
+savefig(plt,"/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/example4.png")

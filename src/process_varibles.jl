@@ -74,27 +74,27 @@ Method2: recount days according to changes in a manipulation
 days is a Symbol  for the column that stores the actual days
 """
 function create_exp_calendar(df::AbstractDataFrame,days::Symbol)
-    lista = sort!(union(df[days]))
+    lista = sort!(union(df[:,days]))
     Exp_day = Array{Int64,1}()
     Day = []
     for (n,d) in enumerate(lista)
         push!(Exp_day,Int64(n))
         push!(Day,d)
     end
-    x = DataFrame(Exp_Day = Exp_day)
-    x[days] = Day
+    x = DataFrame(Exp_Day = Exp_day, days = Day)
+    #x[!,days] = Day
     return x
 end
 
 function create_exp_calendar(df::AbstractDataFrame,days::Symbol,manipulation::Symbol)
     x = by(df,days) do dd
-        DataFrame(manipulation_state = union(dd[manipulation]))
+        DataFrame(manipulation_state = union(dd[:, manipulation]))
     end
     what = string(manipulation)
     new_name = Symbol(what*"_Day")
     reordered = sortperm(x,(days))
     x = x[reordered,:]
-    x[new_name] = count_series(x[:manipulation_state])
-    deletecols!(x,:manipulation_state)
-    return x
+    x[!,new_name] = count_series(x[:,:manipulation_state])
+    #deletecols!(x,:manipulation_state)
+    return select!(x,Not(:manipulation_state))
 end
