@@ -23,11 +23,11 @@ function process_pokes(filepath::String)
     booleans=[:Reward,:Side,:SideHigh,:Stim,:Wall]#columns to convert to Bool
     for x in booleans
         if curr_data[1,x] isa AbstractString
-            try
-                curr_data[x] = parse.(Bool,curr_data[x])#Bool.(curr_data[x])
-            catch
-                continue
-            end
+            #try
+                curr_data[!,x] = parse.(Bool,curr_data[!,x])
+            #catch
+                #continue
+            #end
         elseif curr_data[1,x] isa Real
             curr_data[!,x] = Bool.(curr_data[:,x])
         end
@@ -43,9 +43,9 @@ function process_pokes(filepath::String)
             DataFrames.select!(curr_data,DataFrames.Not(x))
         end
         if !iscolumn(curr_data,:StimFreq)
-            curr_data[!,:StimFreq] = repeat([50],size(curr_data,1))
+            curr_data[!,:StimFreq] .= 50
         end
-        curr_data[!,:StimFreq] = [a == 50 ? 25 : a  for a in curr_data[!,:Stim]]
+        curr_data[!,:StimFreq] = [a == 50 ? 25 : a  for a in curr_data[!,:StimFreq]]
         curr_data[!,:Box] .= 0
     elseif iscolumn(curr_data,:Prwd)
         curr_data[!,:Protocol] = string.(curr_data[!,:Prwd],'/',curr_data[!,:Ptrs])
@@ -168,9 +168,9 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
             b=b+1
         else
             pokes_data = FileIO.load(filetosave)|> DataFrame
-            booleans=[:Reward,:Stim,:Wall,:Correct,:Stim_Day]#columns to convert to Bool removed :Side,:SideHigh
+            booleans=[:Reward,:Stim,:Wall,:Correct,:Stim_Day,:LastPoke]#columns to convert to Bool removed :Side,:SideHigh
             for x in booleans
-                pokes_data[x] = eltype(pokes_data[x]) == Bool ? pokes_data[x] : occursin.(pokes_data[x],"true")
+                pokes_data[!,x] = eltype(pokes_data[!,x]) == Bool ? pokes_data[!,x] : occursin.(pokes_data[!,x],"true")
             end
             streaks_data = process_streaks(pokes_data)
             c=c+1
