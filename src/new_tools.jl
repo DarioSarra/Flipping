@@ -40,12 +40,12 @@ function process_pokes(filepath::String)
         end
         curr_data[!,:Protocol] = Flipping.get_protocollo(curr_data)
         for x in[:ProbVec0,:ProbVec1,:GamVec0,:GamVec1,:Protocollo]
-            deletecols!(curr_data, x)
+            DataFrames.select!(curr_data,DataFrames.Not(x))
         end
         if !iscolumn(curr_data,:StimFreq)
             curr_data[!,:StimFreq] = repeat([50],size(curr_data,1))
         end
-        curr_data[!,:StimFreq] = [a == 50 ? 25 : a  for a in curr_data[:Stim]]
+        curr_data[!,:StimFreq] = [a == 50 ? 25 : a  for a in curr_data[!,:Stim]]
         curr_data[!,:Box] .= 0
     elseif iscolumn(curr_data,:Prwd)
         curr_data[!,:Protocol] = string.(curr_data[!,:Prwd],'/',curr_data[!,:Ptrs])
@@ -65,11 +65,13 @@ function process_pokes(filepath::String)
     curr_data[!,:Poke_within_Streak] = Vector{Union{Float64,Missing}}(undef,size(curr_data,1))
     curr_data[!,:Pre_Interpoke] = Vector{Union{Float64,Missing}}(undef,size(curr_data,1))
     curr_data[!,:Post_Interpoke] = Vector{Union{Float64,Missing}}(undef,size(curr_data,1))
+    curr_data[!,:LastPoke] .= false
     by(curr_data,:Streak) do dd
         dd[:,:Poke_within_Streak] = count_sequence(dd[!,:Poke])
         dd[:,:Pre_Interpoke] =  dd[!,:PokeIn] .-lag(dd[!,:PokeOut],default = missing)
         dd[:,:Post_Interpoke] = lead(dd[!,:PokeIn],default = missing).- dd[!,:PokeOut]
         dd[:,:Poke_Hierarchy] = Flipping.get_hierarchy(dd[!,:Reward])
+        dd.LastPoke[end] = true
     end
     curr_data[!,:Block] = count_sequence(curr_data[!,:Wall])
     curr_data[!,:Streak_within_Block] .= 0
