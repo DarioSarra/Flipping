@@ -124,11 +124,11 @@ function process_streaks(df::DataFrames.AbstractDataFrame; photometry = false)
         end
         return dt
     end
-    streak_table[!,:Prev_Reward] = [x .== nothing ? 0 : x for x in streak_table[:Prev_Reward]]
-    streak_table[:AfterLast] = streak_table[:Num_pokes] .- streak_table[:Last_Reward];
-    streak_table[:BeforeLast] = streak_table[:Last_Reward] .- streak_table[:Prev_Reward].-1;
-    prov = lead(streak_table[:Start],default = 0.0) .- streak_table[:Stop];
-    streak_table[:Travel_to]  = [x.< 0 ? 0 : x for x in prov]
+    streak_table[!,:Prev_Reward] = [x .== nothing ? 0 : x for x in streak_table[:,:Prev_Reward]]
+    streak_table[!,:AfterLast] = streak_table[!,:Num_pokes] .- streak_table[!,:Last_Reward];
+    streak_table[!,:BeforeLast] = streak_table[!,:Last_Reward] .- streak_table[!,:Prev_Reward].-1;
+    prov = lead(streak_table[!,:Start],default = 0.0) .- streak_table[!,:Stop];
+    streak_table[!,:Travel_to] = [x.< 0 ? 0 : x for x in prov]
     if photometry
         frames = by(df, :Streak) do df
             dd = DataFrame(

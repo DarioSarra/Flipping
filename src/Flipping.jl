@@ -22,7 +22,7 @@ include("class.jl")
 include("utilities.jl")
 include("recorded_info.jl")
 include("process_varibles.jl")
-include("new_tools.jl")
+include("pokes_streaks.jl")
 include("saving&loading.jl")
 include("searchfile.jl")
 
