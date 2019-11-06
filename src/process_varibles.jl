@@ -88,13 +88,13 @@ end
 
 function create_exp_calendar(df::AbstractDataFrame,days::Symbol,manipulation::Symbol)
     x = by(df,days) do dd
-        DataFrame(manipulation_state = union(dd[:, manipulation]))
+        DataFrame(Manipulation = join(unique(dd[:, :Protocol]),"*"),
+        Flexi = length(union(dd[:,:Protocol])) == 2)
     end
     what = string(manipulation)
     new_name = Symbol(what*"_Day")
     reordered = sortperm(x,(days))
     x = x[reordered,:]
-    x[!,new_name] = count_series(x[:,:manipulation_state])
-    #deletecols!(x,:manipulation_state)
-    return select!(x,DataFrames.Not(:manipulation_state))
+    x[!,new_name] = Flipping.count_series(x[:,:Manipulation])
+    return x
 end

@@ -154,8 +154,8 @@ end
 function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
     c=0
     b=0
-    pokes = []
-    streaks = []
+    pokes = DataFrame()
+    streaks = DataFrame()
     for i=1:size(DataIndex,1)
         #print(i," ")
         path = DataIndex[i,:Bhv_Path]
@@ -204,6 +204,9 @@ function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
     end
     protocol_calendar = by(pokes,:MouseID) do dd
         Flipping.create_exp_calendar(dd,:Day,:Protocol)
+    end
+    if !any(protocol_calendar[:,:Flexi])
+        select!(protocol_calendar,DataFrames.Not([:Manipulation,:Flexi]))
     end
     pokes = join(pokes, exp_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
     pokes = join(pokes, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
