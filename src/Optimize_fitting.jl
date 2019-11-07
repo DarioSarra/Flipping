@@ -8,7 +8,16 @@ using Plots
 import Flipping.nextcount
 ##
 function evidencepertrial(p, leave::Bool, failure_index)
-    param = p[1]*(exp(-(failure_index*p[2])) + p[3])
+    β,λ,c = p
+    param = β*(1 - c*exp(-(λ*failure_index)))
+    # - param only if event doesn't occur
+    return - log(exp(-param)+1) - !leave * param
+end
+
+function evidencepertrial(p, leave::Bool, failure_index)
+    β,λ,c = p
+    param = β*(1 - c*exp(-(λ*failure_index)))
+    # - param only if event doesn't occur
     return - log(exp(-param)+1) - !leave * param
 end
 
@@ -21,9 +30,17 @@ end
 function evidenceofdatasmart(p, cm)
     sum(n*evidencepertrial(p, value...) for (value, n) in cm)
 end
-function simulate(x, p1, p2, p3)
-    param = p1*(exp(-(x*p2)) + p3)
-    1 / (1 + exp(-param))
+
+probability(p, failure_index) = exp(evidencepertrial(p, true, failure_index))
+
+map(t -> probability(p, t), 1:10)
+
+function failure_idx(count::T, rewarded) where {T <: Number}
+    if rewarded
+        count = 0.0
+    else
+        count + 1.0
+    end
 end
 ##
 filename = "/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/Stimulations/DRN_Opto_Flipping/pokesDRN_Opto_Flipping.csv"
@@ -32,7 +49,7 @@ data[!,:LastPoke] .= false
 data[!,:FailuresIdx] .= 0.0
 by(data,[:Session,:Streak]) do dd
     dd.LastPoke[end] = true
-    dd[:,:FailuresIdx] = accumulate(nextcount, occursin.(dd.Reward,"true");init=0.0)
+    dd[:,:FailuresIdx] = accumulate(failure_idx, occursin.(dd.Reward,"true");init=0.0)
 end
 checkpoint = by(data,:Session) do d
     d.PokeIn[1] == d.PokeIn[2]
@@ -41,25 +58,26 @@ any(checkpoint[:,2])
 println(describe(data))
 # coll = DataFrame(Temp = Float64[], Integration = Float64[], Cost = Float64[])
 ##
-coll =by(data,[:Protocol,:Wall]) do dd
+using LinearAlgebra
+filtered = filter(t -> t[:Protocol].!="45/15", data)
+##
+coll =by(filtered,[:Protocol,:Wall,:MouseID]) do dd
     leaves = dd[:,:LastPoke]
     failures_indices = dd[:,:FailuresIdx]
-    res = optimize(p -> -evidenceofdatasmart(p, leaves, failures_indices), [1.0,1.0,1.0])
+    ϵ = 10^(-2)
+    res = optimize(p -> -evidenceofdatasmart(p, leaves, failures_indices) + ϵ*norm(p)^2, [1.0,1.0,1.0])
     mins = Optim.minimizer(res)
     DataFrame(Inverse_Temp = mins[1], Integration = mins[2], Cost = mins[3])
-    # push!(coll,Tuple(Optim.minimizer(res)))
 end
-x = collect(5:-1:-10)
-f = plot(;xflip = true, legend = :topleft)
-p_df = DataFrame(x = collect(x))
+describe(coll)
+f = plot(; legend = :bottomright)
+
 for r in eachrow(coll)
-    p_df[:,Symbol(r[:Protocol])] = simulate.(x,r[:Inverse_Temp],r[:Integration],r[:Cost])
-end
-sort!(p_df,:x; rev = true)
-for p in 2:size(p_df,2)
-    plot!(p_df[:,1],p_df[:,p],label = names(p_df)[p])
+    p = [r[:Inverse_Temp],r[:Integration],r[:Cost]]
+    plot!(0:10,map(t -> probability(p, t), 0:10),label = r[:Protocol]*string(r[:Wall]))
 end
 f
+
 ####################
 function check_double(that)
     checkpoint = by(that,:Session) do d
@@ -68,4 +86,28 @@ function check_double(that)
     return checkpoint[findall(checkpoint[:,2]),:]
 end
 checkpoint[findall(checkpoint[:,2]),:]
-####################
+###################
+
+sort!(coll,[:MouseID,:Protocol,:Wall])
+z = []
+for par in [:Inverse_Temp,:Integration, :Cost]
+    idxs = occursin.("true",coll[:,:Wall])
+    o = scatter(coll[.!idxs,par],coll[idxs,par],
+    group = coll[idxs,:MouseID],
+    legend = false,
+    xlabel = "no barrier",
+    ylabel = "barrier",
+    title = string(par))
+    axis_list = (xlims(o)...,ylims(o)...)
+    Plots.abline!(1,0)
+    push!(z,o)
+end
+o = z[1]
+axis_list = (xlims(o)...,ylims(o)...)
+
+plot(z[1])
+Plots.abline!(1,0)
+z
+#####
+coll
+unstack(coll,:MouseID,:Inverse_Temp)
