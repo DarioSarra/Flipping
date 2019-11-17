@@ -82,7 +82,7 @@ function find_behavior(Directory_path)
     end
     bhv = get_data(Directory_path);
     DataIndex = create_DataIndex(bhv);
-    DataIndex[:Preprocessed_Path] = joinpath.(saving_path,DataIndex[:Session])
+    DataIndex[:,:Preprocessed_Path] = joinpath.(saving_path,DataIndex[:,:Session])
     results_path = joinpath(Directory_path,"Results")
     if !ispath(results_path)
         mkdir(results_path)
