@@ -184,6 +184,7 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
                 append!(pokes, pokes_data)
                 append!(streaks, streaks_data)
             catch
+                println(DataIndex[i,:Bhv_Path])
                 append!(pokes, pokes_data[:, names(pokes)])
                 append!(streaks, streaks_data[:, names(streaks)])
             end
