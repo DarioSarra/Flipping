@@ -23,11 +23,7 @@ function process_pokes(filepath::String)
     booleans=[:Reward,:Side,:SideHigh,:Stim,:Wall]#columns to convert to Bool
     for x in booleans
         if curr_data[1,x] isa AbstractString
-            #try
                 curr_data[!,x] = parse.(Bool,curr_data[!,x])
-            #catch
-                #continue
-            #end
         elseif curr_data[1,x] isa Real
             curr_data[!,x] = Bool.(curr_data[:,x])
         end
@@ -158,7 +154,7 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
     pokes = DataFrame()
     streaks = DataFrame()
     for i=1:size(DataIndex,1)
-        #print(i," ")
+        #println(i," ",DataIndex[i,:Bhv_Path])
         path = DataIndex[i,:Bhv_Path]
         session = DataIndex[i,:Session]
         filetosave = DataIndex[i,:Preprocessed_Path]
