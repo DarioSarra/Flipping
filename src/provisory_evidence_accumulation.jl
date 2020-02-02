@@ -10,12 +10,14 @@ c3030 = RGBA(181/255,94/255,51/255)#RGBA(111/255,108/255,166/255)
 gr(grid=false,background_color = RGBA(0.8,0.8,0.8,1))
 ##
 #probability that the state has change after n_fail consecutive failures
-function rec_lr(n_fail, Prew, Psw; E1=1)
-    #n_fail = numero di poke
-    #Prew = probabilitá reward
-    #Psw = probabilitá di transizione
-    #E1= la prima evidenza deve essere assegnata perché la probabilitaá è calcolata in maniera ricorsiva
-    #α = uncertainty
+function rec_lr(n_fail, Prew, Psw; E1=0)
+    #= estimate P(depleted) / P(rich); as a ratio not conditioned probability
+    n_fail = number of pokes
+    Prew = probability of reward
+    Psw = probability of state transition
+    E1 = first evidence need to be given been calculated recursively
+    after a reward the evidence of P(depleted) / P(rich) = 0
+    =#
     Es = zeros(n_fail)
     Es[1] = E1
     for i = 2:n_fail
@@ -38,21 +40,27 @@ function rec_lr_with_uncertainty(n_fail, Prew, Psw, α; E1 = 1)
 end
 #Probability of being in the correct side after n_fail consecutive failures, requires to compute rec_lr
 function Pwrong(evidence_accumulation)
+    # x = pdpl / prich; x è la stima ottenuta dalla funzione rec_lr
+    # x*(1-pdpl)  = pdpl
+    # x - x*pdpl = pdpl
+    # x = pdpl + x*pdpl
+    # x = pdpl(1+x)
+    # x/(1+x) = pdpl
     evidence_accumulation ./ (1 .+ evidence_accumulation)
 end
 
-function Pwrong_with_uncertainty(n_fail, Prew, Psw, α; E1 = 1)
+function Pwrong_with_uncertainty(n_fail, Prew, Psw, α; E1 = 0)
     evidence_accumulation = rec_lr(n_fail, Prew, Psw, E1, α)
     evidence_accumulation ./ (1 .+ evidence_accumulation)
 end
 
-function Pwrong(n_fail, Prew, Psw; E1 = 1)
+function Pwrong(n_fail, Prew, Psw; E1 = 0)
     evidence_accumulation = rec_lr(n_fail, Prew, Psw; E1 = E1)
     evidence_accumulation ./ (1 .+ evidence_accumulation)
 end
 
-function Pcorrect(n_fail, Prew, Psw; E1 = 1)
-    1 .- Pwrong(n_fail, Prew, Psw; E1 = 1)
+function Pcorrect(n_fail, Prew, Psw; E1 = 0)
+    1 .- Pwrong(n_fail, Prew, Psw; E1 = E1)
 end
 @. expon(x,p) = p[1]*exp(x*p[2]) ## model for an exponent for fitting
 inverse_exp(y,p) = (log(y/p[1]))*1/p[2] ## model for an inverse exponent
