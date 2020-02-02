@@ -23,11 +23,7 @@ function process_pokes(filepath::String)
     booleans=[:Reward,:Side,:SideHigh,:Stim,:Wall]#columns to convert to Bool
     for x in booleans
         if curr_data[1,x] isa AbstractString
-            #try
                 curr_data[!,x] = parse.(Bool,curr_data[!,x])
-            #catch
-                #continue
-            #end
         elseif curr_data[1,x] isa Real
             curr_data[!,x] = Bool.(curr_data[:,x])
         end
@@ -46,9 +42,10 @@ function process_pokes(filepath::String)
             curr_data[!,:StimFreq] .= 50
         end
         curr_data[!,:StimFreq] = [a == 50 ? 25 : a  for a in curr_data[!,:StimFreq]]
-        curr_data[!,:Box] .= 0
+        curr_data[!,:Box] .= "Box0"
     elseif iscolumn(curr_data,:Prwd)
         curr_data[!,:Protocol] = string.(curr_data[!,:Prwd],'/',curr_data[!,:Ptrs])
+        curr_data[!,:Box] = "Box".*string.(curr_data[:,:Box])
     end
     mouse, day, daily_session, session = session_info(filepath)
     curr_data[!,:MouseID] .= mouse
@@ -89,7 +86,7 @@ end
 
 function process_streaks(df::DataFrames.AbstractDataFrame; photometry = false)
     dayly_vars_list = [:MouseID, :Gen, :Drug, :Day, :Daily_Session, :Box, :Stim_Day, :Condition, :ExpDay, :Area, :Session];
-    booleans=[:Reward,:Side,:SideHigh,:Stim,:Wall,:Correct,:Stim_Day]#columns to convert to Bool
+    booleans=[:Reward,:Stim,:Wall,:Correct,:Stim_Day]#columns to convert to Bool
     for x in booleans
         df[!,x] = eltype(df[!,x]) == Bool ? df[!,x] : occursin.("true",df[!,x],)
     end
@@ -154,10 +151,10 @@ end
 function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
     c=0
     b=0
-    pokes = []
-    streaks = []
+    pokes = DataFrame()
+    streaks = DataFrame()
     for i=1:size(DataIndex,1)
-        #print(i," ")
+        #println(i," ",DataIndex[i,:Bhv_Path])
         path = DataIndex[i,:Bhv_Path]
         session = DataIndex[i,:Session]
         filetosave = DataIndex[i,:Preprocessed_Path]
@@ -183,6 +180,7 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
                 append!(pokes, pokes_data)
                 append!(streaks, streaks_data)
             catch
+                println(DataIndex[i,:Bhv_Path])
                 append!(pokes, pokes_data[:, names(pokes)])
                 append!(streaks, streaks_data[:, names(streaks)])
             end
@@ -204,6 +202,9 @@ function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
     end
     protocol_calendar = by(pokes,:MouseID) do dd
         Flipping.create_exp_calendar(dd,:Day,:Protocol)
+    end
+    if !any(protocol_calendar[:,:Flexi])
+        select!(protocol_calendar,DataFrames.Not([:Manipulation,:Flexi]))
     end
     pokes = join(pokes, exp_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
     pokes = join(pokes, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
