@@ -25,7 +25,7 @@ function rec_lr(n_fail, Prew, Psw; E1=0)
     end
     return Es
 end
-function rec_lr_with_uncertainty(n_fail, Prew, Psw, α; E1 = 1)
+function rec_lr_with_uncertainty(n_fail, Prew, Psw, α; E1 = 0)
     #n_fail = numero di poke
     #Prew = probabilitá reward
     #Psw = probabilitá di transizione
@@ -72,12 +72,12 @@ function fit_protocol(prot)
     fit = curve_fit(expon, xdata, ydata, p0)
 end
 
-function fit_protocol(n_fail, Prew, Psw; E1 = 1)
-    ydata = Pcorrect(n_fail, Prew, Psw; E1 = 1) #evidence accumulation of n_fail consecutive omissions ::array
+function fit_protocol(n_fail, Prew, Psw; E1 = 0, step = 0.1)
+    ydata = Pcorrect(n_fail, Prew, Psw; E1 = E1) #evidence accumulation of n_fail consecutive omissions ::array
     xdata = 0:size(ydata,1)-1
     p0 = [0.5, 0.5] # initialization of parameters
     fit = curve_fit(expon, xdata, ydata, p0)
-    x = 0.0:0.1:n_fail
+    x = 0.0:step:n_fail
     (collect(x),expon(x,fit.param))
 end
 ##
@@ -86,16 +86,43 @@ c
 ##
 plot(fit_protocol(4,0.8,0.4))
 ##
-plt = plot(fit_protocol(10,0.6,0.3),
-    xticks = 1:10,
+colorscheme = Dict("80/40" =>RGB(0/255, 158/255, 115/255),
+    "60/30" => RGB(86/255, 180/255, 233/255),
+    "40/20" => RGB(230/255, 159/255, 0/255))
+##
+gr(grid=false,background_color = RGBA(1,1,1,1), linewidth = 3)
+plt = plot(0:1:9,Pcorrect(10, 0.4, 0.2),#plot(fit_protocol(5,0.8,0.4; step = 1),
     xlabel = "Consecutive failures",
     ylabel =  "Probability of current side high",
-    label="60/30")
-plot!(plt, fit_protocol(10,0.3,0.15),label="40/20")
-Plots.abline!(plt,0,0.05,label = "hypothetical threshold to leave")
+    label = "40/20",
+    color = colorscheme["40/20"])
+
+
+plot!(plt, 0:1:6,Pcorrect(7, 0.6, 0.3),
+    label= "60/30",
+    color = colorscheme["60/30"])
+
+plot!(plt, 0:1:4,Pcorrect(5, 0.8, 0.4),
+    label = "80/40",
+    color = colorscheme["80/40"])
+
+Plots.abline!(plt,0,0.15,
+    label = "example threshold 15%",
+    color = :black)
+
+Plots.abline!(plt,0,0.05,label = "example threshold 5%",
+    linestyle = :dash, color = :black)
+xticks!(plt,0:1:9)
+
+
+
+##
+dir = "/Volumes/GoogleDrive/My Drive/Flipping/shared docs pietro dario/lab meeting 3-02-2020/inference qualitative observations"
+f = joinpath(dir,"updated_inference.pdf")
+savefig(plt,f)
 ##
 plt = plot(fit_protocol(10,0.3,0.15),
-    xticks = 1:10,
+    xticks = 0:10,
     title  = "Evidence accumulation",
     xlabel = "Evidence",
     ylabel =  "Latent state accumulation P(correct)",
@@ -106,7 +133,7 @@ plt = plot(fit_protocol(10,0.3,0.15),
     background_color = RGBA(1,1,1,0)
     )
 ##
-savefig(plt,"/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/example.png")
+
 ##
 Plots.abline!(plt,0,0.15,linewidth = 3,
     color = :black,
