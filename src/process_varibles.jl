@@ -98,3 +98,16 @@ function create_exp_calendar(df::AbstractDataFrame,days::Symbol,manipulation::Sy
     x[!,new_name] = Flipping.count_series(x[:,:Manipulation])
     return x
 end
+"""
+`add_exp_calendar`
+"""
+function add_exp_calendar(df,exp_calendar,protocol_calendar)
+    df = join(df, exp_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
+    df = join(df, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
+    mask = occursin.(String.(names(df)),"_1")
+    for x in[names(df)[mask]]
+        DataFrames.select!(df,DataFrames.Not(x))
+        #deletecols!(pokes, x)
+    end
+    return df
+end

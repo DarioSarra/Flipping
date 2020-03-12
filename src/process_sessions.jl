@@ -6,6 +6,7 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
     c=0
     b=0
     pokes = DataFrame()
+    bouts = DataFrame()
     streaks = DataFrame()
     for i=1:size(DataIndex,1)
         #println(i," ",DataIndex[i,:Bhv_Path])
@@ -15,6 +16,7 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
         if ~isfile(filetosave)
             pokes_data = process_pokes(path)
             FileIO.save(filetosave,pokes_data)
+            bouts_data = process_bouts(pokes_data)
             streaks_data = process_streaks(pokes_data)
             b=b+1
         else
@@ -23,25 +25,29 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
             for x in booleans
                 pokes_data[!,x] = eltype(pokes_data[!,x]) == Bool ? pokes_data[!,x] : occursin.(pokes_data[!,x],"true")
             end
+            bouts_data = process_bouts(pokes_data)
             streaks_data = process_streaks(pokes_data)
             c=c+1
         end
         if isempty(pokes)
             pokes = pokes_data
+            bouts = bouts_data
             streaks = streaks_data
         else
             try
                 append!(pokes, pokes_data)
+                append!(bouts,bouts_data)
                 append!(streaks, streaks_data)
             catch
                 println(DataIndex[i,:Bhv_Path])
                 append!(pokes, pokes_data[:, names(pokes)])
+                append!(bouts, bouts_data[:, names(pokes)])
                 append!(streaks, streaks_data[:, names(streaks)])
             end
         end
     end
     println("Existing file = ",c," Preprocessed = ",b)
-    return pokes, streaks
+    return pokes, bouts, streaks
 end
 
 """
@@ -50,7 +56,7 @@ end
 
 function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
     exp_dir = DataIndex[1,:Saving_Path]
-    pokes, streaks = process_sessions(DataIndex)
+    pokes, bouts, streaks = process_sessions(DataIndex)
     exp_calendar = by(pokes,:MouseID) do dd
         Flipping.create_exp_calendar(dd,:Day)
     end
@@ -60,32 +66,24 @@ function create_exp_dataframes(DataIndex::DataFrames.AbstractDataFrame)
     if !any(protocol_calendar[:,:Flexi])
         select!(protocol_calendar,DataFrames.Not([:Manipulation,:Flexi]))
     end
-    pokes = join(pokes, exp_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
-    pokes = join(pokes, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
-    mask = occursin.(String.(names(pokes)),"_1")
-    for x in[names(pokes)[mask]]
-        DataFrames.select!(pokes,DataFrames.Not(x))
-        #deletecols!(pokes, x)
-    end
+    pokes = add_exp_calendar(pokes,exp_calendar,protocol_calendar)
     pokes = Flipping.check_fiberlocation(pokes,exp_dir)
-    filetosave = joinpath(exp_dir,"pokes"*splitdir(exp_dir)[end]*".jld2")
-    @save filetosave pokes
     filetosave = joinpath(exp_dir,"pokes"*splitdir(exp_dir)[end]*".csv")
     CSVFiles.save(filetosave,pokes)
-    streaks = join(streaks, exp_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
-    streaks = join(streaks, protocol_calendar, on = [:MouseID,:Day], kind = :inner,makeunique=true);
-    mask = occursin.(String.(names(streaks)),"_1")
-    for x in[names(streaks)[mask]]
-        DataFrames.select!(streaks,DataFrames.Not(x))
-        #deletecols!(streaks, x)
-    end
+
+    bouts = add_exp_calendar(bouts,exp_calendar,protocol_calendar)
+    bouts = Flipping.check_fiberlocation(bouts,exp_dir)
+    filetosave = joinpath(exp_dir,"bouts"*splitdir(exp_dir)[end]*".csv")
+    CSVFiles.save(filetosave,bouts)
+
+    streaks = add_exp_calendar(streaks,exp_calendar,protocol_calendar)
     streaks = Flipping.check_fiberlocation(streaks,exp_dir)
     filetosave = joinpath(exp_dir,"streaks"*splitdir(exp_dir)[end]*".jld2")
     @save filetosave streaks
     simple = DataFrames.select(streaks,DataFrames.Not(:PokeSequence))
     filetosave = joinpath(exp_dir,"streaks"*splitdir(exp_dir)[end]*".csv")
     CSVFiles.save(filetosave,simple)
-    return pokes, streaks, DataIndex
+    return pokes, bouts, streaks, DataIndex
 end
 
 function create_exp_dataframes(Directory_path::String,Exp_type::String,Exp_name::String, Mice_suffix::String)
