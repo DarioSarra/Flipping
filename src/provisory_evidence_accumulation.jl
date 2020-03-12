@@ -1,13 +1,12 @@
 using Flipping
 using LsqFit
-using GroupedErrors
 using StatsPlots
 
 ##colors
 c9090 = RGBA(108/255,218/255,165/255)#RGBA(181/255,94/255,50/255)
 c9030 = RGBA(23/255,116/255,206/255)#RGBA(181/255,73/255,144/255)
 c3030 = RGBA(181/255,94/255,51/255)#RGBA(111/255,108/255,166/255)
-gr(grid=false,background_color = RGBA(0.8,0.8,0.8,1))
+gr(grid=false,background_color = RGBA(1,1,1,1))
 ##
 #probability that the state has change after n_fail consecutive failures
 function rec_lr(n_fail, Prew, Psw; E1=0)

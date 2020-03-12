@@ -27,7 +27,7 @@ end
 
 probability(p, failure_index) = exp(evidencepertrial(p, true, failure_index))
 
-map(t -> probability(p, t), 1:10)
+#map(t -> probability(p, t), 1:10)
 ########
 function D_evidencepertrial(p, leave::Bool, failure_index)
     β,λ,c = p
@@ -57,6 +57,10 @@ end
 ##
 filename = "/home/beatriz/mainen.flipping.5ht@gmail.com/Flipping/Datasets/Stimulations/DRN_Opto_Flipping/pokesDRN_Opto_Flipping.csv"
 data = FileIO.load(filename) |> DataFrame
+##
+stim = launch();
+t = stim[][:data][]
+data = DataFrame(t)
 data[!,:LastPoke] .= false
 data[!,:FailuresIdx] .= 0.0
 by(data,[:Session,:Streak]) do dd
@@ -71,7 +75,8 @@ println(describe(data))
 # coll = DataFrame(Temp = Float64[], Integration = Float64[], Cost = Float64[])
 ##
 using LinearAlgebra
-filtered = filter(t -> t[:Protocol].!="45/15", data)
+#filtered = filter(t -> t[:Protocol].!="45/15", data)
+filtered = data
 ##
 coll =by(filtered,[:Protocol,:Wall,:MouseID]) do dd
     leaves = dd[:,:LastPoke]
@@ -79,11 +84,15 @@ coll =by(filtered,[:Protocol,:Wall,:MouseID]) do dd
     ϵ = 10^(-2)
     res = optimize(p -> -evidenceofdatasmart(p, leaves, failures_indices) + ϵ*norm(p)^2, [1.0,1.0,1.0])
     mins = Optim.minimizer(res)
-    D_res = optimize(p -> -D_evidenceofdatasmart(p, leaves, failures_indices) + ϵ*norm(p)^2, [1.0,1.0,1.0])
-    D_mins = Optim.minimizer(D_res)
-    DataFrame(Inverse_Temp = mins[1], Integration = mins[2], Cost = mins[3],
-    D_Inverse_Temp = D_mins[1], D_Integration = D_mins[2], D_Cost = D_mins[3])
+    # res = optimize(p -> -evidenceofdatasmart(p, leaves, failures_indices) + ϵ*norm(p)^2, [1.0,1.0,1.0])
+    # mins = Optim.minimizer(res)
+    DataFrame(Inverse_Temp = mins[1], Integration = mins[2], Cost = mins[3])
+    # D_Inverse_Temp = D_mins[1], D_Integration = D_mins[2], D_Cost = D_mins[3])
 end
+###
+mm1 = fit(LinearMixedModel, @formula( Integration ~ 1 + Protocol + Wall + (1|MouseID)), coll)
+mm2 =  lm( @formula( Integration ~ 1 + Protocol + Wall),coll)
+###
 describe(coll)
 f = plot(; legend = :bottomright)
 

@@ -119,7 +119,7 @@ coll =by(filtered,[:Protocol,:Wall,:MouseID]) do dd
 end
 println(describe(coll))
 f = plot(; legend = :bottomright)
-param_plot(coll,:Protocol,[:Inverse_Temp,:Integration])
+param_plot(coll,:Wall,[:Mu_G,:Sigma_N])
 ###############
 function param_plot(df::AbstractDataFrame,split_var::Symbol,params::Union{Tuple,AbstractVector};groups = :MouseID)
     z = []
