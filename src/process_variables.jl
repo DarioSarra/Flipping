@@ -50,10 +50,8 @@ end
 
 """
 `get_hierarchy`
-Elaborate a series indicating the number of streak from the last stimulated trial.
-First stim trial is 0;
-following non stim trial have negative values;
-following stim trials have positive values;
+Return a vector indicating how many consecutive falses or trues
+preceded an event
 """
 
 function nextcount(count::T, rewarded) where {T <: Number}

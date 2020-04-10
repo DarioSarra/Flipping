@@ -9,7 +9,6 @@ function process_sessions(DataIndex::DataFrames.AbstractDataFrame)
     bouts = DataFrame()
     streaks = DataFrame()
     for i=1:size(DataIndex,1)
-        #println(i," ",DataIndex[i,:Bhv_Path])
         path = DataIndex[i,:Bhv_Path]
         session = DataIndex[i,:Session]
         filetosave = DataIndex[i,:Preprocessed_Path]
