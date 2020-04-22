@@ -20,7 +20,7 @@ using Dates
 include("class.jl")
 include("utilities.jl")
 include("recorded_info.jl")
-include("process_varibles.jl")
+include("process_variables.jl")
 include("process_pokes.jl")
 include("process_bouts.jl")
 include("process_streaks.jl")
